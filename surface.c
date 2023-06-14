@@ -151,6 +151,8 @@ int main(int argc, char **argv)
          Usage();
       }
    }
+
+   return(0);
 }
 
 /*************************************************************************/
@@ -167,6 +169,7 @@ BOOL Initialise(void)
 
    18.11.93 Original   By: ACRM
    19.11.93 Added DoSurface parameter and flag
+   14.06.23 Added -h for help
 */
 BOOL ReadCmdLine(int argc, char **argv, char *pdbfile, char *limitfile,
                  BOOL *DoSurface)
@@ -177,7 +180,7 @@ BOOL ReadCmdLine(int argc, char **argv, char *pdbfile, char *limitfile,
 
    argc--; argv++;
 
-   while(argc>1)
+   while(argc)
    {
       if(argv[0][0] == '-')
       {
@@ -190,16 +193,23 @@ BOOL ReadCmdLine(int argc, char **argv, char *pdbfile, char *limitfile,
 	 case 's': case 'S':
             *DoSurface = FALSE;
             break;
+         case 'h':
 	 default:
-            break;
+            fprintf(stderr, "Returning false!\n");
+            return(FALSE);
          }
       }
+      else
+      {
+         break;
+      }
+      
       argc--; argv++;
    }
 
    if(argc != 1) return(FALSE);
-
    strcpy(pdbfile,argv[0]);
+
    return(TRUE);
 }
 
@@ -263,7 +273,7 @@ PDB *FindSurfaceAtoms(PDB *pdb)
         y,
         z;
 
-   fprintf(stderr,"Finding surface atoms using %lf Angstrom grid\n",
+   fprintf(stderr,"Finding surface atoms using %f Angstrom grid\n",
            (double)GRID);
 
    /* Find size of coordinate box and set occ's to zero to use as flag  */
@@ -289,7 +299,7 @@ PDB *FindSurfaceAtoms(PDB *pdb)
    ymax += BOXSIZE;
    zmax += BOXSIZE;
 
-   fprintf(stderr,"Dimensions of box are: %lf %lf %lf\n\n",
+   fprintf(stderr,"Dimensions of box are: %f %f %f\n\n",
            (double)(xmax-xmin),(double)(ymax-ymin),(double)(zmax-zmin));
 
    /* For each point on the x-y plane, search along the z axis           */
@@ -629,7 +639,7 @@ void DoDistMatrix(PDB *interest)
    {
       for(q=p->next; q!=NULL; NEXT(q))
       {
-         printf("%s %c%4d%c %s %c%4d%c %8.3lf\n",
+         printf("%s %c%4d%c %s %c%4d%c %8.3f\n",
                 p->resnam,p->chain[0],p->resnum,p->insert[0],
                 q->resnam,q->chain[0],q->resnum,q->insert[0],
                 DIST(p,q));
@@ -647,16 +657,16 @@ void DoDistMatrix(PDB *interest)
 */
 void Usage(void)
 {
-   fprintf(stderr,"Usage: surface [-l <limits>] [-s] <file.pdb>\n");
+   fprintf(stderr,"Surface V1.1 19.05.93\n");
+
+   fprintf(stderr,"\nUsage: surface [-l <limits>] [-s] <file.pdb>\n");
    fprintf(stderr,"       -l specify limits file\n");
    fprintf(stderr,"       -s assume all residues are surface\n");
-   fprintf(stderr,"Surface V1.1 19.05.93\n");
-   fprintf(stderr,"Search for surface charged and aromatic residues and \
+   fprintf(stderr,"\nSearch for surface charged and aromatic residues and \
 create a distance matrix\n");
    fprintf(stderr,"The limits file specifies ranges of amino acids to \
 be included\n");
    fprintf(stderr,"Output is to stdout\n");
-
 }
 
 /*************************************************************************/
@@ -770,7 +780,7 @@ PDB *SelectRanges(PDB *pdb, char *limitfile)
 	    }
             else
 	    {
-               ALLOCNEXT(q,PDB)
+               ALLOCNEXT(q,PDB);
 	    }
 
             if(q==NULL)
